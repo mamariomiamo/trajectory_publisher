@@ -5,6 +5,7 @@ add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
+  std_msgs
   roscpp
   trajectory_msgs
   quadrotor_msgs
@@ -18,7 +19,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES trajectory_publisher
-  CATKIN_DEPENDS mavros_msgs roscpp trajectory_msgs quadrotor_msgs tf
+  CATKIN_DEPENDS mavros_msgs std_msgs roscpp trajectory_msgs quadrotor_msgs tf
   DEPENDS Eigen3
 )
 

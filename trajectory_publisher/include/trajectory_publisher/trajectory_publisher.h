@@ -6,6 +6,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include "quadrotor_msgs/TrajectoryPoint.h"
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Byte.h>
 #include <iostream>
 
 namespace trajectory_publisher
@@ -16,6 +17,7 @@ namespace trajectory_publisher
         ros::NodeHandle nh;
         // ros::Subscriber
         ros::Publisher trajectory_nwu_pub_, trajectory_point_nwu_pub_, ref_pose_pub_;
+        ros::Subscriber user_cmd_sub_;
         ros::Timer trajectory_pub_timer_;
 
         double speed_, radius_, omega_;
@@ -27,12 +29,15 @@ namespace trajectory_publisher
 
         Eigen::Vector3d centre_ = Eigen::Vector3d(0.0, 0.0, 2.0);
 
+        bool trajectory_pub_timer_auto_start_;
+
     public:
     
         trajectory_publisher(ros::NodeHandle &nh);
         ~trajectory_publisher() = default;
 
         void trajectory_pub_timer_cb(const ros::TimerEvent &);
+        void cmd_cb(const std_msgs::Byte::ConstPtr &msg);
         // void initialize_trajectory_list(std::vector<trajectory_msgs::JointTrajectoryPoint> & trajectory_list);
     };
 } // namespace trajectory_publisher

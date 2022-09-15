@@ -9,7 +9,4 @@
 
     </node>
 
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find trajectory_publisher)/config/rviz.rviz">
-    </node>
-
 </launch>

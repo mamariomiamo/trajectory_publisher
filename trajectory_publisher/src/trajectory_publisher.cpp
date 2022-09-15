@@ -8,6 +8,7 @@ namespace trajectory_publisher
         nh.param<double>("speed", speed_, 1.0);
         nh.param<double>("sampling_frequency", sampling_frequency_, 20.0);
         nh.param<double>("radius", radius_, 1.0);
+        nh.param<bool>("trajectory_pub_timer_auto_start", trajectory_pub_timer_auto_start_, true);
 
         omega_ = speed_ * radius_;
 
@@ -18,11 +19,17 @@ namespace trajectory_publisher
         trajectory_point_nwu_pub_ = nh.advertise<quadrotor_msgs::TrajectoryPoint>("/uav/trajectory_point/nwu", 1);
         ref_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/uav/ref_pose/nwu", 1);
 
-        // Timer
-        trajectory_pub_timer_ = nh.createTimer(ros::Duration(1.0/sampling_frequency_), &trajectory_publisher::trajectory_pub_timer_cb, this, false, false);
+        // Subscriber
+        if (!trajectory_pub_timer_auto_start_)
+        {
+            user_cmd_sub_ = nh.subscribe<std_msgs::Byte>("/user_cmd", 1, &trajectory_publisher::cmd_cb, this);
+        }
 
-        double angle_increment = omega_/sampling_frequency_;
-        for (double angle = 0; angle < 2*3.14; angle+= angle_increment)
+        // Timer
+        trajectory_pub_timer_ = nh.createTimer(ros::Duration(1.0 / sampling_frequency_), &trajectory_publisher::trajectory_pub_timer_cb, this, false, false);
+
+        double angle_increment = omega_ / sampling_frequency_;
+        for (double angle = 0; angle < 2 * 3.14; angle += angle_increment)
         {
             std::cout << "adding " << angle << std::endl;
             Eigen::Vector3d position, velocity, acceleration;
@@ -44,15 +51,17 @@ namespace trajectory_publisher
         // std::cout << trajectory_point_list_.size() << std::endl;
 
         counter_ = 0;
-
-        trajectory_pub_timer_.start();
-        
+        if (trajectory_pub_timer_auto_start_)
+        {
+            trajectory_pub_timer_.start();
+        }
     }
 
     void trajectory_publisher::trajectory_pub_timer_cb(const ros::TimerEvent &)
     {
         // std::cout << "hahahaha" << std::endl;
-        if(counter_ == trajectory_point_list_.size()) counter_ = 0;
+        if (counter_ == trajectory_point_list_.size())
+            counter_ = 0;
 
         quadrotor_msgs::TrajectoryPoint msg;
         msg = trajectory_point_list_[counter_];
@@ -75,6 +84,15 @@ namespace trajectory_publisher
         // std::cout << trajectory_point_list_.size() << std::endl;
 
         counter_++;
+    }
+
+    void trajectory_publisher::cmd_cb(const std_msgs::Byte::ConstPtr &msg)
+    {
+        int cmd = msg->data;
+        if (cmd == 2)
+        {
+            trajectory_pub_timer_.start();
+        }
     }
 
     // void initialize_trajectory_list(std::vector<trajectory_msgs::JointTrajectoryPoint> & trajectory_list)
