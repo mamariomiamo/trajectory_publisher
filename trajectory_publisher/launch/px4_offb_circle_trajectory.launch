@@ -1,11 +1,16 @@
 <launch>
 
+    <arg name="speed" default="1.0"/>
+    <arg name="sampling_frequency" default="20.0"/>
+    <arg name="radius" default="1.0"/>
+    <arg name="trajectory_pub_timer_auto_start" default="false"/>
+
     <node pkg="trajectory_publisher" type="main" name="traj_pub_main">
 
-        <param name="speed" value="1.0" />
-        <param name="sampling_frequency" value="10000.0" />
-        <param name="radius" value="2.0" />
-        <param name="trajectory_pub_timer_auto_start" value="false"/>
+        <param name="speed" value="$(arg speed)" />
+        <param name="sampling_frequency" value="$(arg sampling_frequency)" />
+        <param name="radius" value="$(arg radius)" />
+        <param name="trajectory_pub_timer_auto_start" value="$(arg trajectory_pub_timer_auto_start)"/>
 
     </node>
 
