@@ -4,6 +4,7 @@
     <arg name="sampling_frequency" default="20.0"/>
     <arg name="radius" default="1.0"/>
     <arg name="trajectory_pub_timer_auto_start" default="false"/>
+    <arg name="publish_pva" default="false"/>
 
     <node pkg="trajectory_publisher" type="main" name="traj_pub_main">
 

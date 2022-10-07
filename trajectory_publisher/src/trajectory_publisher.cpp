@@ -9,6 +9,7 @@ namespace trajectory_publisher
         nh.param<double>("sampling_frequency", sampling_frequency_, 20.0);
         nh.param<double>("radius", radius_, 1.0);
         nh.param<bool>("trajectory_pub_timer_auto_start", trajectory_pub_timer_auto_start_, true);
+        nh.param<bool>("publish_pva", publish_pva, true);
 
         omega_ = speed_ * radius_;
 
@@ -35,9 +36,9 @@ namespace trajectory_publisher
             Eigen::Vector3d position, velocity, acceleration;
             const double cos_phi = cos(angle);
             const double sin_phi = sin(angle);
-            position = radius_ * Eigen::Vector3d(sin_phi, -cos_phi, 0.0) + centre_;
-            velocity = radius_ * omega_ * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
-            acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
+            position = radius_ * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
+            velocity = radius_ * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0) + centre_;
+            acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0) + centre_;
 
             quadrotor_msgs::TrajectoryPoint point;
             tf::vectorEigenToMsg(position, point.position);

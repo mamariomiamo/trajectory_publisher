@@ -30,6 +30,7 @@ namespace trajectory_publisher
         Eigen::Vector3d centre_ = Eigen::Vector3d(0.0, 0.0, 2.0);
 
         bool trajectory_pub_timer_auto_start_;
+        bool publish_pva;
 
     public:
     
