@@ -39,6 +39,7 @@ namespace trajectory_publisher
 
         void trajectory_pub_timer_cb(const ros::TimerEvent &);
         void cmd_cb(const std_msgs::Byte::ConstPtr &msg);
+        Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R);
         // void initialize_trajectory_list(std::vector<trajectory_msgs::JointTrajectoryPoint> & trajectory_list);
     };
 } // namespace trajectory_publisher
