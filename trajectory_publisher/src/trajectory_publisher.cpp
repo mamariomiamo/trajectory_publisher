@@ -37,8 +37,8 @@ namespace trajectory_publisher
             const double cos_phi = cos(angle);
             const double sin_phi = sin(angle);
             position = radius_ * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
-            velocity = radius_ * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0) + centre_;
-            acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0) + centre_;
+            velocity = radius_ * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0);
+            acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0);
 
             quadrotor_msgs::TrajectoryPoint point;
             tf::vectorEigenToMsg(position, point.position);
