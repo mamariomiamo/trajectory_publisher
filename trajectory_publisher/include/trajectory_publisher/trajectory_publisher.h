@@ -18,9 +18,13 @@ namespace trajectory_publisher
         // ros::Subscriber
         ros::Publisher trajectory_nwu_pub_, trajectory_point_nwu_pub_, ref_pose_pub_;
         ros::Subscriber user_cmd_sub_;
+        ros::Subscriber uav_pose_sub_;
         ros::Timer trajectory_pub_timer_;
+        double start_time_;
+        double alpha_;
 
         double speed_, radius_, omega_;
+        double speed_limit_;
         double sampling_frequency_;
         std::vector<trajectory_msgs::JointTrajectoryPoint> trajectory_list_;
         std::vector<quadrotor_msgs::TrajectoryPoint> trajectory_point_list_;
@@ -30,7 +34,6 @@ namespace trajectory_publisher
         Eigen::Vector3d centre_ = Eigen::Vector3d(0.0, 0.0, 2.0);
 
         bool trajectory_pub_timer_auto_start_;
-        bool publish_pva;
 
     public:
     
@@ -40,6 +43,7 @@ namespace trajectory_publisher
         void trajectory_pub_timer_cb(const ros::TimerEvent &);
         void cmd_cb(const std_msgs::Byte::ConstPtr &msg);
         Eigen::Vector4d rot2Quaternion(const Eigen::Matrix3d &R);
+        Eigen::Vector4d acc2quaternion(const Eigen::Vector3d &vector_acc, const double &yaw);
         // void initialize_trajectory_list(std::vector<trajectory_msgs::JointTrajectoryPoint> & trajectory_list);
     };
 } // namespace trajectory_publisher
