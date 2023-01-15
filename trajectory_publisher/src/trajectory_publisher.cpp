@@ -11,7 +11,7 @@ namespace trajectory_publisher
         nh.param<bool>("trajectory_pub_timer_auto_start", trajectory_pub_timer_auto_start_, true);
         nh.param<double>("speed_limit", speed_limit_, 3.0);
 
-        omega_ = speed_ * radius_;
+        omega_ = speed_ / radius_;
         alpha_ = radius_;
 
         // initialize_trajectory_list(trajectory_list_);
@@ -99,76 +99,18 @@ namespace trajectory_publisher
     // }
 
     // circle trajectory
-    // void trajectory_publisher::trajectory_pub_timer_cb(const ros::TimerEvent &)
-    // {
-    //     if(counter_ > 2) // every two rounds, we will increment the speed until the speed_limit_
-    //     {
-    //         counter_ = 0;
-    //         speed_+=0.1;
-    //         if(speed_ > speed_limit_)
-    //         {
-    //             speed_ = speed_limit_;
-    //         }
-    //     }
-    //     omega_ = speed_ * radius_;
-    //     double current_time = ros::Time::now().toSec();
-    //     double angle = omega_ * (current_time - start_time_);
-
-    //     if (angle > 2 * 3.14) // we will reset start_time every round
-    //     {
-    //         counter_++;
-    //         start_time_ = ros::Time::now().toSec();
-    //         angle = omega_ * (current_time - start_time_);
-    //     }
-
-    //     Eigen::Vector3d position, velocity, acceleration;
-    //     const double cos_phi = cos(angle);
-    //     const double sin_phi = sin(angle);
-    //     position = radius_ * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
-    //     velocity = radius_ * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0);
-    //     acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0);
-
-    //     quadrotor_msgs::TrajectoryPoint point;
-    //     tf::vectorEigenToMsg(position, point.position);
-    //     tf::vectorEigenToMsg(velocity, point.velocity);
-    //     tf::vectorEigenToMsg(acceleration, point.acceleration);
-    //     point.heading = -1.57; // in the NWU frame, -1.57 as in -90 degree, to the East
-
-    //     Eigen::Vector3d vector_acc;
-    //     vector_acc << point.acceleration.x, point.acceleration.y, point.acceleration.z;
-
-    //     vector_acc = vector_acc - Eigen::Vector3d{0.0, 0.0, -9.81};
-
-    //     Eigen::Vector4d quat = acc2quaternion(vector_acc, point.heading);
-
-    //     geometry_msgs::PoseStamped ref_pose;
-    //     ref_pose.header.stamp = ros::Time::now();
-    //     ref_pose.header.frame_id = "map";
-    //     ref_pose.pose.position.x = point.position.x;
-    //     ref_pose.pose.position.y = point.position.y;
-    //     ref_pose.pose.position.z = point.position.z;
-    //     ref_pose.pose.orientation.w = quat(0);
-    //     ref_pose.pose.orientation.x = quat(1);
-    //     ref_pose.pose.orientation.y = quat(2);
-    //     ref_pose.pose.orientation.z = quat(3);
-    //     // tf::vectorEigenToMsg(Eigen::Vector3d(1.1, 2.2, 3.3), point.velocity);
-    //     trajectory_point_nwu_pub_.publish(point);
-    //     ref_pose_pub_.publish(ref_pose);
-    // }
-
-    // figure 8
     void trajectory_publisher::trajectory_pub_timer_cb(const ros::TimerEvent &)
     {
-        if (counter_ > 2) // every two rounds, we will increment the speed until the speed_limit_
+        if(counter_ > 2) // every two rounds, we will increment the speed until the speed_limit_
         {
             counter_ = 0;
-            speed_ += 0.1;
-            if (speed_ > speed_limit_)
+            speed_+=0.1;
+            if(speed_ > speed_limit_)
             {
                 speed_ = speed_limit_;
             }
         }
-        omega_ = speed_ * radius_;
+        omega_ = speed_ / radius_;
         double current_time = ros::Time::now().toSec();
         double angle = omega_ * (current_time - start_time_);
 
@@ -180,26 +122,11 @@ namespace trajectory_publisher
         }
 
         Eigen::Vector3d position, velocity, acceleration;
-        // const double cos_phi = cos(angle);
-        // const double sin_phi = sin(angle);
-        // double radius = radius_ * sqrt(abs(cos(2 * angle)));
-        // position = radius * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
-        // velocity = radius * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0);
-        // acceleration = radius * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0);
-
-        // from mavros_controller
-        double theta = angle;
-        Eigen::Vector3d traj_radial_, traj_axis_;
-        traj_radial_ << 1.0, 0.0, 0.0;
-        traj_axis_ << 0.0, 0.0, 1.0;
-        position = std::cos(theta) * traj_radial_ + std::sin(theta) * std::cos(theta) * traj_axis_.cross(traj_radial_) +
-                   (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_ + centre_;
-        velocity = omega_ *
-                   (-std::sin(theta) * traj_radial_ +
-                    (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis_.cross(traj_radial_) +
-                    (std::sin(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_);
-        acceleration << 0.0, 0.0, 0.0;
-        // from mavros_controller --- END
+        const double cos_phi = cos(angle);
+        const double sin_phi = sin(angle);
+        position = radius_ * Eigen::Vector3d(cos_phi, sin_phi, 0.0) + centre_;
+        velocity = radius_ * omega_ * Eigen::Vector3d(-sin_phi, cos_phi, 0.0);
+        acceleration = radius_ * pow(omega_, 2.0) * Eigen::Vector3d(-cos_phi, -sin_phi, 0.0);
 
         quadrotor_msgs::TrajectoryPoint point;
         tf::vectorEigenToMsg(position, point.position);
@@ -228,6 +155,91 @@ namespace trajectory_publisher
         trajectory_point_nwu_pub_.publish(point);
         ref_pose_pub_.publish(ref_pose);
     }
+
+    // figure 8
+    // void trajectory_publisher::trajectory_pub_timer_cb(const ros::TimerEvent &)
+    // {
+    //     if (counter_ > 2) // every two rounds, we will increment the speed until the speed_limit_
+    //     {
+    //         counter_ = 0;
+    //         speed_ += 0.1;
+    //         if (speed_ > speed_limit_)
+    //         {
+    //             speed_ = speed_limit_;
+    //         }
+    //     }
+    //     omega_ = speed_ * radius_;
+    //     double current_time = ros::Time::now().toSec();
+    //     double angle = omega_ * (current_time - start_time_);
+
+    //     if (angle > 2 * 3.14) // we will reset start_time every round
+    //     {
+    //         counter_++;
+    //         start_time_ = ros::Time::now().toSec();
+    //         angle = omega_ * (current_time - start_time_);
+    //     }
+
+    //     Eigen::Vector3d position, velocity, acceleration;
+    //     const double cos_phi = cos(angle);
+    //     const double sin_phi = sin(angle);
+    //     const double sin_sq = pow(sin_phi, 2.0);
+    //     const double sin_sq_sq = pow(sin_sq, 2.0);
+    //     const double cos_sq = pow(cos_phi, 2.0);
+    //     const double omega_sq = pow(omega_, 2.0);
+
+    //     double x_pos = radius_ * cos_phi / (1 + sin_sq);
+    //     double y_pos = radius_ * cos_phi * sin_phi / (1 + sin_sq);
+    //     double x_vel = radius_ * omega_ * sin_phi * (sin_sq - 3) / (pow((sin_sq + 1), 2.0));
+    //     double y_vel = -radius_ * omega_ * (sin_sq_sq + (cos_sq + 1) * sin_sq - cos_sq) / (pow((sin_sq + 1), 2.0));
+    //     double x_acc = 0.0;
+    //     double y_acc = 0.0;
+    //     // double x_acc = radius_ * omega_sq * sin_phi * (sin_sq_sq + 2 * cos_sq * sin_sq - 6 * cos_sq - 1) / pow((sin_sq + 1), 3.0);
+    //     // double y_acc = (2 * radius_ * omega_sq * cos_phi * sin_phi * (sin_sq_sq + (cos_sq - 1) * sin_sq - 3 * cos_sq - 2)) / pow((sin_sq + 1), 3.0);
+    //     position = Eigen::Vector3d(x_pos, y_pos, 0.0) + centre_;
+    //     velocity = Eigen::Vector3d(x_vel, y_vel, 0.0);
+    //     acceleration = Eigen::Vector3d(x_acc, y_acc, 0.0);
+
+    //     // // from mavros_controller
+    //     // double theta = angle;
+    //     // Eigen::Vector3d traj_radial_, traj_axis_;
+    //     // traj_radial_ << 1.0, 0.0, 0.0;
+    //     // traj_axis_ << 0.0, 0.0, 1.0;
+    //     // position = std::cos(theta) * traj_radial_ + std::sin(theta) * std::cos(theta) * traj_axis_.cross(traj_radial_) +
+    //     //            (1 - std::cos(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_ + centre_;
+    //     // velocity = omega_ *
+    //     //            (-std::sin(theta) * traj_radial_ +
+    //     //             (std::pow(std::cos(theta), 2) - std::pow(std::sin(theta), 2)) * traj_axis_.cross(traj_radial_) +
+    //     //             (std::sin(theta)) * traj_axis_.dot(traj_radial_) * traj_axis_);
+    //     // acceleration << 0.0, 0.0, 0.0;
+    //     // // from mavros_controller --- END
+
+    //     quadrotor_msgs::TrajectoryPoint point;
+    //     tf::vectorEigenToMsg(position, point.position);
+    //     tf::vectorEigenToMsg(velocity, point.velocity);
+    //     tf::vectorEigenToMsg(acceleration, point.acceleration);
+    //     point.heading = -1.57; // in the NWU frame, -1.57 as in -90 degree, to the East
+
+    //     Eigen::Vector3d vector_acc;
+    //     vector_acc << point.acceleration.x, point.acceleration.y, point.acceleration.z;
+
+    //     vector_acc = vector_acc - Eigen::Vector3d{0.0, 0.0, -9.81};
+
+    //     Eigen::Vector4d quat = acc2quaternion(vector_acc, point.heading);
+
+    //     geometry_msgs::PoseStamped ref_pose;
+    //     ref_pose.header.stamp = ros::Time::now();
+    //     ref_pose.header.frame_id = "map";
+    //     ref_pose.pose.position.x = point.position.x;
+    //     ref_pose.pose.position.y = point.position.y;
+    //     ref_pose.pose.position.z = point.position.z;
+    //     ref_pose.pose.orientation.w = quat(0);
+    //     ref_pose.pose.orientation.x = quat(1);
+    //     ref_pose.pose.orientation.y = quat(2);
+    //     ref_pose.pose.orientation.z = quat(3);
+    //     // tf::vectorEigenToMsg(Eigen::Vector3d(1.1, 2.2, 3.3), point.velocity);
+    //     trajectory_point_nwu_pub_.publish(point);
+    //     ref_pose_pub_.publish(ref_pose);
+    // }
 
     void trajectory_publisher::cmd_cb(const std_msgs::Byte::ConstPtr &msg)
     {
